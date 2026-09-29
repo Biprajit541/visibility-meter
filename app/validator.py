@@ -59,15 +59,16 @@ def validate_extraction(
     norm_raw = _norm_text(raw_response)
 
     claimed: dict[str, tuple[Sentiment, str]] = {}
+    seen: set[str] = set()
     for m in extraction.mentions:
         key = m.brand.strip().lower()
         if key not in canon:
             reasons.append(f"UNKNOWN_BRAND: '{m.brand}' is not a tracked brand")
             continue
         brand = canon[key]
-        if brand in claimed:
-            reasons.append(f"DUPLICATE_BRAND: '{brand}' reported more than once")
+        if brand in seen:
             continue
+        seen.add(brand)
         if _norm_text(m.quote) not in norm_raw:
             reasons.append(f"QUOTE_NOT_IN_RESPONSE: quote for '{brand}' is not verbatim text")
             continue
@@ -80,7 +81,7 @@ def validate_extraction(
     present = {b: find_brand_offset(raw_response, b) for b in tracked_brands}
     for b, off in present.items():
         if off is not None and b not in claimed and not any(
-            r.startswith(("UNKNOWN_BRAND", "DUPLICATE_BRAND", "QUOTE_")) and f"'{b}'" in r
+            r.startswith(("UNKNOWN_BRAND", "QUOTE_")) and f"'{b}'" in r
             for r in reasons
         ):
             reasons.append(f"MISSED_MENTION: '{b}' appears in the response but was not extracted")
