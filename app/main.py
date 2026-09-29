@@ -44,7 +44,7 @@ def create_app(repo: Repo | None = None, llm_factory: Callable[[], LLM] | None =
         if llm_factory is None:
             http = make_client()
             key = os.getenv("GROQ_API_KEY", "")
-            model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+            model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
             app.state.llm = GroqClient(http, key, model)
         else:
             app.state.llm = llm_factory()
