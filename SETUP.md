@@ -134,11 +134,6 @@ Render only see what is pushed. For larger changes, use a branch and a pull requ
    trailing slash, exactly as shown in the browser). Render restarts.
 5. Vercel reads environment variables at build time. After changing one, use **Redeploy**.
 
-## E. Before you email Kasparro
-- Open the live Vercel URL and do a real run with 8 to 10 prompts (a run with fewer than 5 valid answers halts by design).
-- Look at `HALTED` runs and rejected samples, then check that `TRACE.md` still matches what you saw.
-- Put both live links in the README.
-
 ## Troubleshooting
 | Symptom | Cause and fix |
 |---|---|
