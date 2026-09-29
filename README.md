@@ -21,11 +21,11 @@ Live run on the deployed app: ASUS against HP, Dell and Lenovo, 10 buyer questio
 
 **Recommendation Position and Sentiment Quality, and change between runs**
 
-![Recommendation Position, Sentiment Quality and Change between runs](docs/screenshots/03-position-and-sentiment.png)
+<img width="1897" height="873" alt="Screenshot 2026-09-29 233812" src="https://github.com/user-attachments/assets/f945c4ca-41b4-46e2-878d-b52a65eeeacf" />
 
 **Evidence by question** (each label is a mention whose quote was found word for word in the raw answer; the rejected question is marked "Not counted")
 
-![Evidence by question](docs/screenshots/04-evidence-by-question.png)
+<img width="1901" height="857" alt="Screenshot 2026-09-29 233843" src="https://github.com/user-attachments/assets/adeeda1d-8795-411a-b979-f3f29bc6969b" />
 
 ## What it measures
 | Metric (dashboard) | Definition, all computed by code |
