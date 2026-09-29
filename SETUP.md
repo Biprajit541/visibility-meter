@@ -1,104 +1,39 @@
-# Setup in VS Code, step by step
+# What this system cannot reliably do
 
-This project is Python (FastAPI) + Next.js. It does **not** use .NET, so your `dotnet 10.0.301` is not needed here.
+Written down before building workarounds, per the rule "if it's impossible, say so in writing".
 
-## 0. Install once
-- Python 3.12 (python.org; tick "Add to PATH") -> check: `python --version`
-- Node.js 20+ (nodejs.org) -> check: `node --version`
-- Git -> check: `git --version`
-- VS Code extensions: Python, Pylance, ESLint, Docker (VS Code will offer them from `.vscode/extensions.json`)
-
-## 1. Open the project
-1. Unzip `visibility-meter.zip`, then in VS Code: **File > Open Folder** and pick the `visibility-meter` folder.
-2. Open the terminal: **Terminal > New Terminal**.
-
-## 2. Create your own Python environment
-Windows (PowerShell):
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-```
-If PowerShell blocks the script: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, then retry.
-Mac/Linux: `python3 -m venv .venv && source .venv/bin/activate`
-
-Then install and select it:
-```powershell
-pip install -r requirements-dev.txt
-```
-Press **Ctrl+Shift+P > "Python: Select Interpreter"** and choose the one inside `.venv`.
-The terminal prompt should now start with `(.venv)`.
-
-## 3. Configure secrets
-```powershell
-copy .env.example .env
-```
-Edit `.env`: put your Groq key in `GROQ_API_KEY` (free key at console.groq.com). Leave `DATABASE_URL` empty for now (in-memory store).
-
-## 4. Run the tests
-```powershell
-pytest -q
-```
-Expected: `40 passed`. No network or database is needed.
-
-## 5. Start the backend
-```powershell
-uvicorn app.main:app --reload --port 8000 --env-file .env
-```
-Open http://localhost:8000/docs to try the endpoints. Or press **F5** in VS Code ("API (uvicorn, reload)") to debug with breakpoints.
-
-## 6. Start the frontend (second terminal: click the `+` in the terminal panel)
-```powershell
-cd frontend
-copy .env.example .env.local
-npm install
-npm run dev
-```
-Open http://localhost:3000.
-
-## 7. Use PostgreSQL locally (optional)
-`docker compose up db` starts Postgres. Then set in `.env`:
-`DATABASE_URL=postgresql://meter:meter@localhost:5432/meter`, run `python -m app.migrate`, and restart the API.
-
----
-
-# Deploy: Supabase (database) + Render (API) + Vercel (frontend)
-
-Do them in this order.
-
-## A. Supabase
-1. supabase.com > New project (save the database password).
-2. **Connect** button > **Session pooler** > copy the URI. It looks like
-   `postgresql://postgres.<ref>:<PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres`
-   Use the *session pooler* (port 5432), not "Direct connection": Render has no IPv6 and Supabase's direct host is IPv6-only.
-3. Add `?sslmode=require` to the end of that URI. This is your `DATABASE_URL`.
-4. Tables are created automatically: the API container runs `python -m app.migrate` on every start.
-   (Or run it yourself: put the URL in `.env` and run `python -m app.migrate`.)
-
-## B. GitHub
-```powershell
-git init
-git checkout -b main
-git add . && git commit -m "Initial commit"
-```
-Create an empty repo on GitHub, then `git remote add origin <url>` and `git push -u origin main`.
-For each later change use a branch and a pull request: `git checkout -b feature/x`, push, open a PR, merge.
-
-## C. Render (API)
-1. render.com > **New > Blueprint** > pick your GitHub repo (it reads `render.yaml`).
-2. Fill the three secret values when asked:
-   - `DATABASE_URL` = the Supabase URL from step A
-   - `GROQ_API_KEY` = your Groq key
-   - `CORS_ORIGINS` = your Vercel URL (put a placeholder now, fix after step D)
-3. Deploy. Check `https://<your-service>.onrender.com/health` returns `{"ok": true, ...}`.
-   Free tier sleeps when idle; the first request can take about a minute.
-
-## D. Vercel (frontend)
-1. vercel.com > **Add New > Project** > import the same repo.
-2. Set **Root Directory** to `frontend`.
-3. Environment variable: `NEXT_PUBLIC_API_URL` = your Render URL (no trailing slash).
-4. Deploy, copy the Vercel URL, then go back to Render > Environment and set `CORS_ORIGINS` to it. Redeploy the API.
-
-## E. Before you email Kasparro
-- Open the live Vercel URL and do a real run with at least 6 prompts.
-- Look at `HALTED` runs and rejected samples, then write 2-3 real cases in `TRACE.md`.
-- Put both live links in the README.
+1. **It measures one model's answers, not "AI search" in general.** A score describes how the configured
+   model (default: `openai/gpt-oss-120b` on Groq) answers the prompts you supplied. Other engines, other days
+   and other phrasings can differ.
+2. **Sampling noise is real.** Answers are non-deterministic. The gate enforces a minimum number of valid
+   samples, but it does not compute confidence intervals. With 6 questions each answer moves a rate by about
+   17 points, so do not read small score differences as real. Use 8 to 10 questions or more.
+3. **The prompt set is the biggest source of bias.** The score is only as representative as the prompts.
+4. **Sentiment is the witness's opinion.** The code checks that the quote is real and names the brand. It
+   cannot check that "positive" is the right label for that sentence. Treat sentiment, and the net score built
+   from it, as advisory.
+5. **Brand matching is string-based.** Aliases, misspellings and product-line names (e.g. "the Vitamin C
+   serum") are not resolved. A brand written differently is not seen, by the witness or by the recall check.
+6. **The recall check is one-directional.** It catches a tracked brand present in the text but omitted by the
+   extractor. It cannot catch a wrong sentiment or a semantically wrong quote that still contains the name.
+7. **Position means order of first mention among tracked brands**, not prominence in the page a user sees. A
+   brand can be "1st" while untracked companies are named before it. Share of Voice likewise counts tracked
+   brands only, so it is not market share.
+8. **Repeated brands are collapsed.** If the extractor reports a brand more than once, only its first entry is
+   judged and counted; later entries are ignored. A later mention that contradicts the first is not represented.
+9. **The verbatim-quote rule is strict on purpose.** Unicode form, dash and quote variants, markdown emphasis and
+   whitespace are normalised, but wording and case are not. A faithful paraphrase is rejected, so some
+   correct answers are excluded (and counted toward the failure rate).
+10. **The gate is only as good as its thresholds.** Defaults are 5 valid samples and a 20% failure rate
+    (`MIN_VALID_SAMPLES`, `MAX_FAILURE_RATE`). A run with fewer than 5 questions always halts. Loosening them
+    lets weaker data through.
+11. **Runs are synchronous and sequential.** A run holds the HTTP request open until all prompts finish (max 20
+    prompts), and calls are made one at a time because of free-tier Groq limits. Rate-limited calls are retried
+    a bounded number of times, then counted as failures. A queue plus polling would be the production design.
+12. **One provider.** Only `api.groq.com` is allowed by the egress guard. Other providers would need a change
+    in `app/egress.py` and `app/llm.py`.
+13. **Free-tier hosting.** Render's free service sleeps when idle (the first request can take about a minute),
+    and Supabase's session pooler allows 15 clients, so the API keeps a small connection pool.
+14. **No authentication or quotas.** Anyone who can reach the API can start a run, which spends the Groq key's
+    quota. CORS restricts browsers, not other clients. Add auth and rate limiting before real public use.
+    Row Level Security is on with no policies, so the Supabase public API cannot read or write the tables.
