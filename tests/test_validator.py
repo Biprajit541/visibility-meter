@@ -51,11 +51,13 @@ def test_unknown_brand_rejected():
     assert not v.valid and any(r.startswith("UNKNOWN_BRAND") for r in v.reasons)
 
 
-def test_duplicate_brand_rejected():
+def test_repeated_brand_keeps_first_mention_and_stays_valid():
     e = full()
     e.mentions.append(mention("CeraVe", "CeraVe is a solid pick."))
     v = validate_extraction(RAW, e, BRANDS)
-    assert not v.valid and any(r.startswith("DUPLICATE_BRAND") for r in v.reasons)
+    assert v.valid
+    assert not any(r.startswith("DUPLICATE_BRAND") for r in v.reasons)
+    assert [m.brand for m in v.mentions].count("CeraVe") == 1
 
 
 def test_omitted_brand_is_caught_by_deterministic_recall_check():
