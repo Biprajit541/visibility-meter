@@ -17,7 +17,8 @@ Live run on the deployed app: ASUS against HP, Dell and Lenovo, 10 buyer questio
 
 **Visibility Score and Share of Voice**
 
-![Visibility Score and Share of Voice](docs/screenshots/02-visibility-and-share-of-voice.png)
+![Visibility Score and Share of Voice](<img width="1901" height="867" alt="Screenshot 2026-09-29 233754" src="https://github.com/user-attachments/assets/7b3c14dd-bd6c-41be-a154-904f4a279254" />
+)
 
 **Recommendation Position and Sentiment Quality, and change between runs**
 
