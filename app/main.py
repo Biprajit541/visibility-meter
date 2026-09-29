@@ -35,7 +35,7 @@ def create_app(repo: Repo | None = None, llm_factory: Callable[[], LLM] | None =
             dsn = os.getenv("DATABASE_URL")
             if dsn:
                 import asyncpg
-                pool = await asyncpg.create_pool(dsn, statement_cache_size=0)  # Supabase pooler-safe
+                pool = await asyncpg.create_pool(dsn, statement_cache_size=0, min_size=1, max_size=4)  # Supabase pooler-safe
                 app.state.repo = PgRepo(pool)
             else:
                 app.state.repo = InMemoryRepo()  # dev only
