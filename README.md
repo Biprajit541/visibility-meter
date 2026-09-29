@@ -10,7 +10,9 @@ score it cannot defend**. Doctrine: **LLM as witness, code as judge.**
 - LLM: Groq API (OpenAI-compatible, model `openai/gpt-oss-120b`), including a forced tool call for structured extraction
 - Built AI-assisted with Claude
 
-Live demo: _add your Vercel URL_ · API: _add your Render URL_ · Repo: https://github.com/Biprajit541/visibility-meter
+Live demo: https://visibility-meter.vercel.app
+API: https://visibility-meter-api.onrender.com  
+Open the API link first and wait about a minute. The API runs on Render's free plan, which puts it to sleep when idle. Open the health check and wait until it shows {"ok":true,...}, then open the live app. If the app says it cannot reach the API, wait a little and click Retry. A measurement of 8 to 10 questions then takes one to two minutes.
 
 ## Screenshots
 Live run on the deployed app: ASUS against HP, Dell and Lenovo, 10 buyer questions (9 valid, 1 rejected by the validator).
