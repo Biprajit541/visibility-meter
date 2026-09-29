@@ -63,27 +63,6 @@ Questions are processed one at a time (free-tier rate limits). A rejected sample
 `INVALID`. Defaults: at least 5 valid samples and a failure rate of at most 20%; both can be changed with the
 `MIN_VALID_SAMPLES` and `MAX_FAILURE_RATE` environment variables.
 
-## How each point of the Kasparro job description is covered
-| JD point | Where |
-|---|---|
-| Multi-agent pipeline: plan / extract / draft / critique wrapped in deterministic code | `app/pipeline.py` (answer + extraction agents, code validates and gates) |
-| Deterministic code computes every number and gates every stage | `app/validator.py`, `app/gate.py` |
-| LLM as witness, code as judge | validator never calls a model; positions and scores are code-computed |
-| Schemas are contracts; changing one is a versioning event | `app/schemas.py` (`extra="forbid"`, `SCHEMA_VERSION` stored on every run); `frontend/lib/types.ts` mirrors it |
-| Pipelines fail closed / halt rather than emit an indefensible number | gate returns `HALTED` with `score: null`; DB CHECK constraint `score_matches_status` |
-| Tool functions agents call | extraction agent must call `submit_mentions` (`app/llm.py: call_tool`) |
-| Structured output validation, and handling a model returning something unusable | Pydantic validation, one retry, then sample `INVALID` with reasons |
-| Domain allowlist that cannot be bypassed via the underlying client | `app/egress.py` on the httpx transport (only `api.groq.com`) + source-tree scan test |
-| FastAPI: endpoints, request/response models, error handling, async | `app/main.py` |
-| PostgreSQL: tables, queries, migrations; joins, filters, aggregations | `migrations/0001_init.sql`, `app/migrate.py`, `PgRepo.stats` in `app/repo.py` |
-| React / Next.js dashboard with loading and error states | `frontend/` |
-| Git and deployment, at least one live app | see SETUP.md (GitHub, Supabase, Render, Vercel) |
-| Used LLM APIs (tool call, multi-step task) | Groq answer + tool-call extraction, bounded retry on HTTP 429 |
-| Docker (bonus) | `Dockerfile`, `docker-compose.yml` |
-| Testing habit (bonus) | `tests/` (45 tests) |
-| Teardown of why a model got something wrong (bonus) | `TRACE.md` |
-| "If impossible, say so in writing" | `LIMITS.md` |
-
 ## Dashboard
 Four charts under the names Visibility Score, Share of Voice, Recommendation Position and Sentiment Quality,
 a "Change between runs" chart, the outcome of every sample, an Evidence by question table (hover a label to
