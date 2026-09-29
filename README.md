@@ -12,6 +12,7 @@ score it cannot defend**. Doctrine: **LLM as witness, code as judge.**
 
 Live demo: https://visibility-meter.vercel.app
 API: https://visibility-meter-api.onrender.com  
+
 Open the API link first and wait about a minute. The API runs on Render's free plan, which puts it to sleep when idle. Open the health check and wait until it shows {"ok":true,...}, then open the live app. If the app says it cannot reach the API, wait a little and click Retry. A measurement of 8 to 10 questions then takes one to two minutes.
 
 ## Screenshots
