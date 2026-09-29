@@ -1,0 +1,20 @@
+# Render Blueprint: backend only. Database is Supabase; frontend is on Vercel.
+services:
+  - type: web
+    name: visibility-meter-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL        # Supabase *Session pooler* connection string (IPv4)
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CORS_ORIGINS        # your Vercel URL, e.g. https://visibility-meter.vercel.app
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: MIN_VALID_SAMPLES
+        value: "5"
+      - key: MAX_FAILURE_RATE
+        value: "0.2"
